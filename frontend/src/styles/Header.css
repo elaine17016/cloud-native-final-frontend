@@ -68,30 +68,27 @@
   display: inline;
 }
 
-.logo-title:has(.logo-title-line2:not(:empty)) {
+.logo-title--split {
   display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 1px;
+  gap: 0;
+  max-width: none;
 }
 
-.logo-title:has(.logo-title-line2:not(:empty)) .logo-title-line1,
-.logo-title:has(.logo-title-line2:not(:empty)) .logo-title-line2 {
+.logo-title--split .logo-title-line1,
+.logo-title--split .logo-title-line2 {
   display: block;
   white-space: nowrap;
+  line-height: 1.1;
 }
 
-.logo-title-line1:only-child,
+.logo-title-break {
+  display: none;
+}
+
 .logo-title--single-line .logo-title-line1 {
   display: block;
-}
-
-.logo-title-line2:not(:empty)::before {
-  content: ' ';
-}
-
-.logo-title:has(.logo-title-line2:not(:empty)) .logo-title-line2::before {
-  content: none;
 }
 
 .logo small {
@@ -348,20 +345,28 @@
   }
 
   .logo span {
-    overflow: hidden;
+    min-width: 0;
+    overflow: visible;
   }
 
   .logo-title {
-    display: inline-flex;
-    flex-direction: column;
-    max-width: 144px;
     font-size: 16px;
     line-height: 1.05;
   }
 
-  .logo-title-line1,
-  .logo-title-line2 {
+  .logo-title--split {
+    max-width: none;
+    width: max-content;
+  }
+
+  .logo-title--split .logo-title-line1,
+  .logo-title--split .logo-title-line2 {
     display: block;
+    white-space: nowrap;
+  }
+
+  .logo-title--single-line {
+    max-width: 144px;
   }
 
   .header-right {
@@ -606,7 +611,11 @@
 }
 
 @media (max-width: 480px) {
-  .logo-title {
+  .logo-title--single-line {
     max-width: 118px;
+  }
+
+  .logo {
+    max-width: min(220px, calc(100vw - 120px));
   }
 }
