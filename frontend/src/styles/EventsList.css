@@ -29,6 +29,20 @@
   line-height: 1.14;
 }
 
+.brand-title-split.ant-typography {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  line-height: 1.1;
+}
+
+.brand-title-split .brand-title-line1,
+.brand-title-split .brand-title-line2 {
+  display: block;
+  white-space: nowrap;
+}
+
 .guest-hero .ant-typography {
   max-width: 620px;
   margin-bottom: var(--ds-space-xs);

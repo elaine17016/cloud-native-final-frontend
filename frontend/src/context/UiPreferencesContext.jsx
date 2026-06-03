@@ -26,9 +26,7 @@ const readStored = (key, fallback) => {
 };
 
 const readInitialLocale = () => {
-  const stored =
-    readStored(STORAGE_KEYS.locale, null)
-    ?? readStored('cets_locale', null);
+  const stored = readStored(STORAGE_KEYS.locale, null);
   if (stored === 'en' || stored === 'zh-TW') {
     return stored;
   }

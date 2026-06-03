@@ -381,7 +381,16 @@ const EventsList = () => {
         </Card>
       ) : !user ? (
         <Card className="events-hero hero-card guest-hero">
-          <Title level={2}>{m.eventsList.title}</Title>
+          <Title level={2} className="brand-title-split">
+            {m.header.brandLine2 ? (
+              <>
+                <span className="brand-title-line1">{m.header.brandLine1}</span>
+                <span className="brand-title-line2">{m.header.brandLine2}</span>
+              </>
+            ) : (
+              m.eventsList.title
+            )}
+          </Title>
           <Button
             type="primary"
             size="large"

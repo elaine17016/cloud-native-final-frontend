@@ -68,6 +68,19 @@
   display: inline;
 }
 
+.logo-title:has(.logo-title-line2:not(:empty)) {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+
+.logo-title:has(.logo-title-line2:not(:empty)) .logo-title-line1,
+.logo-title:has(.logo-title-line2:not(:empty)) .logo-title-line2 {
+  display: block;
+  white-space: nowrap;
+}
+
 .logo-title-line1:only-child,
 .logo-title--single-line .logo-title-line1 {
   display: block;
@@ -75,6 +88,10 @@
 
 .logo-title-line2:not(:empty)::before {
   content: ' ';
+}
+
+.logo-title:has(.logo-title-line2:not(:empty)) .logo-title-line2::before {
+  content: none;
 }
 
 .logo small {

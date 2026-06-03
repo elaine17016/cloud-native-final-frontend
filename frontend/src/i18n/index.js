@@ -7,7 +7,7 @@ export const LOCALES = {
 };
 
 export const getLocaleBundle = (locale) => (
-  LOCALES[locale]?.bundle || LOCALES.en.bundle
+  LOCALES[locale]?.bundle || LOCALES['zh-TW'].bundle
 );
 
 export { labelOr } from './labelOr';

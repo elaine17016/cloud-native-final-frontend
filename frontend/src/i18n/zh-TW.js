@@ -86,8 +86,8 @@ export const messages = {
     zhTW: '繁體中文'
   },
   header: {
-    brandLine1: '台積電晶彩活動通',
-    brandLine2: '',
+    brandLine1: '台積電',
+    brandLine2: '晶彩活動通',
     brandTagline: '員工活動平台',
     adminConsole: '管理後台',
     verifierPortal: '驗票入口',

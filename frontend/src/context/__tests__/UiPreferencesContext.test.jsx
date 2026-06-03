@@ -17,6 +17,15 @@ describe('UiPreferencesContext', () => {
     expect(result.current.antdConfig.theme.token.fontSize).toBe(16);
   });
 
+  it('defaults to zh-TW when only legacy locale key is English', () => {
+    localStorage.clear();
+    localStorage.setItem('cets_locale', 'en');
+    const wrapper = ({ children }) => <UiPreferencesProvider>{children}</UiPreferencesProvider>;
+    const { result } = renderHook(() => useUiPreferences(), { wrapper });
+
+    expect(result.current.locale).toBe('zh-TW');
+  });
+
   it('persists color mode and text scale preferences', () => {
     localStorage.clear();
     const wrapper = ({ children }) => <UiPreferencesProvider>{children}</UiPreferencesProvider>;
