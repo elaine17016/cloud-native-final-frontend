@@ -23,6 +23,12 @@ import { apiClient } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { pickEventImage, resolvePublicAssetUrl } from '../assets/media';
 import { REGISTRATION_STATUS_LABELS, SESSION_STATUS_LABELS, labelOr, useI18n } from '../utils/labels';
+import {
+  formatEligibilityRequirementLines,
+  getEligibilityAudienceKey,
+  parseEligibilityFromDescription,
+  stripEligibilityMarkerFromDescription
+} from '../utils/eventEligibility';
 import '../styles/EventDetail.css';
 
 const { Title, Paragraph } = Typography;
@@ -37,9 +43,6 @@ export const registrationErrMsg = (e) =>
 export const isAlreadyRegisteredError = (e) =>
   e?.error?.code === 'ALREADY_REGISTERED' ||
   /Already registered for this session|already registered|ALREADY_REGISTERED/i.test(registrationErrMsg(e));
-
-const CETS_ELIGIBILITY_MARKER_PREFIX = '<!--CETS_ELIGIBILITY:';
-const CETS_ELIGIBILITY_MARKER_SUFFIX = '-->';
 
 export const getTicketAudienceLabel = (ticketType, copy) => {
   const audience = String(ticketType?.audience || '').toUpperCase();
@@ -58,17 +61,7 @@ export const getDefaultTicketType = (ticketTypes = [], copy) => (
   null
 );
 
-/** Strip legacy hidden eligibility marker so old event descriptions stay readable. */
-export const stripEligibilityMarkerFromDescription = (rawDescription) => {
-  const description = String(rawDescription || '');
-  const start = description.indexOf(CETS_ELIGIBILITY_MARKER_PREFIX);
-  if (start < 0) return description.trim();
-  const end = description.indexOf(CETS_ELIGIBILITY_MARKER_SUFFIX, start);
-  if (end < 0) return description.trim();
-  const before = description.slice(0, start).trimEnd();
-  const after = description.slice(end + CETS_ELIGIBILITY_MARKER_SUFFIX.length).trimStart();
-  return before && after ? `${before}\n${after}` : (before || after).trim();
-};
+export { stripEligibilityMarkerFromDescription };
 
 const registrationDialogInitialState = {
   open: false,
@@ -292,13 +285,30 @@ const EventSessionsCard = ({
 
 const RegistrationModal = ({
   dialog,
+  eligibilityConfig,
   onSubmit,
   onClose,
   onConfirmChange,
   onTicketTypeChange,
   copy,
+  adminCopy,
   common
-}) => (
+}) => {
+  const audienceKey = dialog.ticketType
+    ? getEligibilityAudienceKey(dialog.ticketType, copy)
+    : 'adult';
+  const requirementLines = formatEligibilityRequirementLines(eligibilityConfig, audienceKey, {
+    genderMaleOnly: copy.genderMaleOnly,
+    genderFemaleOnly: copy.genderFemaleOnly,
+    heightLabel: copy.heightLabel,
+    ageLabel: copy.ageLabel,
+    ageUnit: copy.ageUnit,
+    mustNotHaveDiseases: copy.mustNotHaveDiseases,
+    listSeparator: copy.listSeparator,
+    diseaseLabels: adminCopy?.diseaseLabels || {}
+  });
+
+  return (
   <Modal
     title={dialog.session ? `${copy.registerFor} ${dialog.session.title}` : copy.registerForEvent}
     open={dialog.open}
@@ -332,6 +342,22 @@ const RegistrationModal = ({
             ))}
           </Space>
         </Radio.Group>
+        <div className="registration-requirements">
+          <Paragraph strong style={{ marginBottom: 8 }}>
+            {copy.requirementsTitle}
+          </Paragraph>
+          {requirementLines.length ? (
+            <ul className="registration-requirements-list">
+              {requirementLines.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          ) : (
+            <Paragraph type="secondary" style={{ marginBottom: 0 }}>
+              {copy.noRequirements}
+            </Paragraph>
+          )}
+        </div>
         <Checkbox
           checked={dialog.eligibilityConfirmed}
           onChange={(e) => onConfirmChange(e.target.checked)}
@@ -349,7 +375,8 @@ const RegistrationModal = ({
       </Space>
     ) : null}
   </Modal>
-);
+  );
+};
 
 const EventDetail = () => {
   const { eventId } = useParams();
@@ -362,6 +389,7 @@ const EventDetail = () => {
     labelOr: labelOrFn
   } = useI18n();
   const copy = m.eventDetail;
+  const adminCopy = m.admin;
   const common = m.common;
   const [pageState, setPageState] = useReducer(eventDetailPageReducer, eventDetailPageInitialState);
   const [registrationDialog, dispatchRegistrationDialog] = useReducer(
@@ -369,6 +397,10 @@ const EventDetail = () => {
     registrationDialogInitialState
   );
   const { event, registrations, loading, error } = pageState;
+  const eligibilityConfig = useMemo(
+    () => parseEligibilityFromDescription(event?.description),
+    [event?.description]
+  );
 
   const registrationsBySession = useMemo(() => {
     const map = new Map();
@@ -602,11 +634,13 @@ const EventDetail = () => {
       />
       <RegistrationModal
         dialog={registrationDialog}
+        eligibilityConfig={eligibilityConfig}
         onSubmit={submitRegisterModal}
         onClose={() => dispatchRegistrationDialog({ type: 'close' })}
         onConfirmChange={(value) => dispatchRegistrationDialog({ type: 'set_confirmed', value })}
         onTicketTypeChange={(ticketTypeId) => dispatchRegistrationDialog({ type: 'select_ticket_type', ticketTypeId })}
         copy={copy}
+        adminCopy={adminCopy}
         common={common}
       />
     </div>

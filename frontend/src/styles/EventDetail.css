@@ -83,6 +83,22 @@
   line-height: 1.4;
 }
 
+.registration-requirements {
+  padding: 12px 14px;
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.registration-requirements-list {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.registration-requirements-list li + li {
+  margin-top: 6px;
+}
+
 :root.theme-dark .registration-ticket-option.ant-radio-wrapper-checked {
   background: rgba(218, 41, 28, 0.18);
 }

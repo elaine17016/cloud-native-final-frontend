@@ -81,7 +81,7 @@ describe('AdminConsole helpers', () => {
   it('normalizes cover image URLs and strips eligibility markers', () => {
     expect(normalizeCoverImageUrlForBackend(' /image/event_1.webp ')).toBe('/image/event_1.webp');
     expect(normalizeCoverImageUrlForBackend('   ')).toBeNull();
-    expect(stripEligibilityMarkerForBackend('Hello <!--CETS_ELIGIBILITY:{}--> World')).toBe('Hello  World');
+    expect(stripEligibilityMarkerForBackend('Hello <!--CETS_ELIGIBILITY:{}--> World')).toBe('Hello\nWorld');
     expect(stripEligibilityMarkerForBackend('Plain description')).toBe('Plain description');
   });
 
@@ -163,6 +163,19 @@ describe('AdminConsole helpers', () => {
       description: 'Hello <!--CETS_ELIGIBILITY:{}--> World'
     });
     expect(unlimited.sessions[0].ticket_types[0].name).toContain('unlimited');
-    expect(unlimited.description).toBe('Hello  World');
+    expect(unlimited.description).toBe('Hello\nWorld');
+  });
+
+  it('embeds admin eligibility restrictions in event description', () => {
+    const payload = buildCreatePayload({
+      ...createDefaultCreateValues(),
+      adult_has_limits: true,
+      adult_health_unlimited: false,
+      adult_health_no_diseases: ['Hypertension'],
+      adult_other_restrictions: 'Wear comfortable shoes'
+    });
+    expect(payload.description).toContain('<!--CETS_ELIGIBILITY:');
+    expect(payload.description).toContain('Hypertension');
+    expect(payload.description).toContain('Wear comfortable shoes');
   });
 });

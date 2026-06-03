@@ -27,6 +27,13 @@ import dayjs from 'dayjs';
 import { useNotifications } from '../context/NotificationContext';
 import { getDiseaseCheckboxOptions } from '../i18n/diseaseOptions';
 import { EVENT_STATUS_LABELS, REGISTRATION_STATUS_LABELS, labelOr, useI18n } from '../utils/labels';
+import {
+  buildEligibilityConfigFromFormValues,
+  eligibilityConfigToFormValues,
+  embedEligibilityInDescription,
+  parseEligibilityFromDescription,
+  stripEligibilityMarkerFromDescription as stripEligibilityMarkerForBackend
+} from '../utils/eventEligibility';
 import { EVENT_IMAGES, resolvePublicAssetUrl, publicRootPath } from '../assets/media';
 import '../styles/AdminConsole.css';
 
@@ -271,22 +278,7 @@ export const normalizeCoverImageUrlForBackend = (value) => {
   return trimmed ? publicRootPath(trimmed) : null;
 };
 
-const CETS_ELIGIBILITY_MARKER_PREFIX = '<!--CETS_ELIGIBILITY:';
-const CETS_ELIGIBILITY_MARKER_SUFFIX = '-->';
-
-export const stripEligibilityMarkerForBackend = (rawDescription) => {
-  const description = String(rawDescription || '');
-  const startIdx = description.indexOf(CETS_ELIGIBILITY_MARKER_PREFIX);
-  if (startIdx < 0) {
-    return description;
-  }
-  const endIdx = description.indexOf(CETS_ELIGIBILITY_MARKER_SUFFIX, startIdx);
-  if (endIdx < 0) {
-    return description;
-  }
-  return `${description.slice(0, startIdx)}${description.slice(endIdx + CETS_ELIGIBILITY_MARKER_SUFFIX.length)}`
-    .trim();
-};
+export { stripEligibilityMarkerForBackend };
 
 export const resolveSessionTicketFields = (session) => {
   const ticketTypes = Array.isArray(session?.ticket_types) ? session.ticket_types : [];
@@ -424,9 +416,11 @@ export const buildCreatePayload = (values) => {
     };
   });
 
+  const eligibility = buildEligibilityConfigFromFormValues(values);
+
   return {
     title: values.title,
-    description: stripEligibilityMarkerForBackend(values.description || ''),
+    description: embedEligibilityInDescription(values.description || '', eligibility),
     cover_image_url: normalizeCoverImageUrlForBackend(values.cover_image_url),
     allowed_sites: values.allowed_sites || [],
     sessions
@@ -638,12 +632,15 @@ const useAdminConsoleController = () => {
     const sessions = Array.isArray(detail?.sessions) ? detail.sessions : [];
     const firstSession = sessions[0] || {};
     const { adultTicket, childTicket } = resolveSessionTicketFields(firstSession);
-    const cleanDescription = stripEligibilityMarkerForBackend(detail?.description || '');
+    const rawDescription = detail?.description || '';
+    const cleanDescription = stripEligibilityMarkerForBackend(rawDescription);
+    const eligibilityPatch = eligibilityConfigToFormValues(parseEligibilityFromDescription(rawDescription));
     const isUnlimitedMode = String(detail?.registration_mode || '').toUpperCase() === 'UNLIMITED'
       || String(adultTicket?.name || '').includes('unlimited');
 
     return {
       ...defaults,
+      ...eligibilityPatch,
       title: detail?.title || '',
       description: cleanDescription || '',
       cover_image_url: EVENT_IMAGES.includes(resolvePublicAssetUrl(detail?.cover_image_url))
@@ -728,10 +725,11 @@ const useAdminConsoleController = () => {
       const values = await createForm.validateFields();
       validateSessionTimeline(values);
       const status = selectedEvent?.status;
+      const eligibility = buildEligibilityConfigFromFormValues(values);
       const payload = status === 'PUBLISHED'
         ? {
           title: values.title,
-          description: stripEligibilityMarkerForBackend(values.description || ''),
+          description: embedEligibilityInDescription(values.description || '', eligibility),
           cover_image_url: normalizeCoverImageUrlForBackend(values.cover_image_url)
         }
         : (() => {
