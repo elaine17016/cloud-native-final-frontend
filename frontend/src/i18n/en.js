@@ -414,6 +414,16 @@ export const messages = {
     lotteryAndReports: 'Lottery and reports',
     lotteryTime: 'Lottery time',
     won: 'Won',
+    diseaseLabels: {
+      heart: 'Heart disease / cardiovascular condition',
+      hypertension: 'Hypertension',
+      diabetes: 'Diabetes',
+      asthma: 'Asthma / chronic respiratory disease',
+      epilepsy: 'Epilepsy',
+      hepatitis: 'Hepatitis / abnormal liver function',
+      infectious: 'Infectious disease (fever, flu, etc.)',
+      recentSurgery: 'Recent major surgery or condition requiring physician clearance'
+    }
   }
 };
 

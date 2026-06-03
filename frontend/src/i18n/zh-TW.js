@@ -414,6 +414,16 @@ export const messages = {
     lotteryAndReports: '抽籤與報表',
     lotteryTime: '抽籤時間',
     won: '中籤人數',
+    diseaseLabels: {
+      heart: '心臟病／心血管疾病',
+      hypertension: '高血壓',
+      diabetes: '糖尿病',
+      asthma: '氣喘／慢性呼吸道疾病',
+      epilepsy: '癲癇',
+      hepatitis: '肝炎／肝功能異常',
+      infectious: '傳染性疾病（含發燒、流感等）',
+      recentSurgery: '近期重大手術或需醫師評估之狀況'
+    }
   }
 };
 

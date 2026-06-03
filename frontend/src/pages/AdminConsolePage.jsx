@@ -25,6 +25,7 @@ import { apiClient } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import dayjs from 'dayjs';
 import { useNotifications } from '../context/NotificationContext';
+import { getDiseaseCheckboxOptions } from '../i18n/diseaseOptions';
 import { EVENT_STATUS_LABELS, REGISTRATION_STATUS_LABELS, labelOr, useI18n } from '../utils/labels';
 import { EVENT_IMAGES, resolvePublicAssetUrl, publicRootPath } from '../assets/media';
 import '../styles/AdminConsole.css';
@@ -150,17 +151,6 @@ const SITE_LABELS = {
   TAIPEI: 'Taipei TAIPEI',
   OVERSEAS: 'Overseas OVERSEAS'
 };
-
-const DISEASE_OPTIONS = [
-  'Heart disease / cardiovascular condition',
-  'Hypertension',
-  'Diabetes',
-  'Asthma / chronic respiratory disease',
-  'Epilepsy',
-  'Hepatitis / abnormal liver function',
-  'Infectious disease (fever, flu, etc.)',
-  'Recent major surgery or condition requiring physician clearance'
-];
 
 const defaultSession = {
   confirmation_deadline_hours: 48,
@@ -1116,7 +1106,10 @@ const EventBasicFields = () => {
 const TicketRestrictionFields = ({ controller }) => {
   const { m } = useI18n();
   const t = m.admin;
-
+  const diseaseOptions = useMemo(
+    () => getDiseaseCheckboxOptions(t.diseaseLabels),
+    [t.diseaseLabels]
+  );
   const {
     createRegistrationMode,
     anyRequireChildTicket,
@@ -1193,7 +1186,7 @@ const TicketRestrictionFields = ({ controller }) => {
                 <Form.Item name="adult_health_no_diseases" label={t.healthCheckHint}>
                   <Checkbox.Group
                     disabled={adultHealthUnlimited}
-                    options={DISEASE_OPTIONS}
+                    options={diseaseOptions}
                   />
                 </Form.Item>
               </Col>
@@ -1236,7 +1229,7 @@ const TicketRestrictionFields = ({ controller }) => {
                   <Form.Item name="child_health_no_diseases" label={t.healthCheckHint}>
                     <Checkbox.Group
                       disabled={childHealthUnlimited}
-                      options={DISEASE_OPTIONS}
+                      options={diseaseOptions}
                     />
                   </Form.Item>
                 </Col>
