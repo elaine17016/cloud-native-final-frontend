@@ -107,6 +107,32 @@ describe('UserProfile page', () => {
     expect(screen.getByText('Issued')).toBeInTheDocument();
   });
 
+  it('lists ISSUED tickets before USED tickets', async () => {
+    profileMocks.getMyRegistrations.mockResolvedValue({ data: { items: [] } });
+    profileMocks.getMyTickets.mockResolvedValue({
+      data: {
+        items: [
+          {
+            id: 'ticket-used',
+            status: 'USED',
+            issued_at: '2026-05-30T19:00:00+08:00'
+          },
+          {
+            id: 'ticket-issued',
+            status: 'ISSUED',
+            issued_at: '2026-05-30T18:00:00+08:00'
+          }
+        ]
+      }
+    });
+    const { container } = renderWithProviders(<UserProfile />);
+    await screen.findByText('Issued');
+    const ticketCards = container.querySelectorAll('.tabs-content .ant-col .ant-card');
+    expect(ticketCards).toHaveLength(2);
+    expect(ticketCards[0].textContent).toContain('Issued');
+    expect(ticketCards[1].textContent).toContain('Used');
+  });
+
   it('switches to registrations tab', async () => {
     renderWithProviders(<UserProfile />);
     await screen.findByText(/Alice/);

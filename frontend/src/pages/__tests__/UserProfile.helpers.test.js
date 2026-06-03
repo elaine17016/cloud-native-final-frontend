@@ -7,6 +7,7 @@ import {
   formatQrCountdown,
   getQrSecondsRemaining,
   normalizeTicketTypeLabel,
+  sortTicketsForDisplay,
   ticketQrModalReducer
 } from '../UserProfile';
 
@@ -69,6 +70,21 @@ describe('UserProfile helpers', () => {
     const enriched = enrichRegistrationsFromNotifications(regs, notifications);
     expect(enriched[0].event_title).toBe('Spring Family Day');
     expect(enrichRegistrationsFromNotifications([], notifications)).toEqual([]);
+  });
+
+  it('sorts tickets with ISSUED first and USED last', () => {
+    const tickets = [
+      { id: 't-used-old', status: 'USED', issued_at: '2026-05-01T10:00:00+08:00' },
+      { id: 't-issued', status: 'ISSUED', issued_at: '2026-05-02T10:00:00+08:00' },
+      { id: 't-used-new', status: 'USED', issued_at: '2026-05-03T10:00:00+08:00' },
+      { id: 't-revoked', status: 'REVOKED', issued_at: '2026-05-04T10:00:00+08:00' }
+    ];
+    expect(sortTicketsForDisplay(tickets).map((t) => t.id)).toEqual([
+      't-issued',
+      't-revoked',
+      't-used-new',
+      't-used-old'
+    ]);
   });
 
   it('updates ticket QR modal reducer state', () => {

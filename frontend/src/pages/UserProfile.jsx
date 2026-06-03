@@ -44,6 +44,22 @@ export const formatQrCountdown = (seconds, copy) => {
   return `${copy?.remaining || 'Remaining'} ${minutes}:${remainingSeconds}`;
 };
 
+/** ISSUED (unused) first, USED last; same status sorted by newest issued_at. */
+export const TICKET_STATUS_SORT_RANK = {
+  ISSUED: 0,
+  REVOKED: 1,
+  USED: 2
+};
+
+export const sortTicketsForDisplay = (tickets) => (
+  [...tickets].sort((a, b) => {
+    const rankA = TICKET_STATUS_SORT_RANK[a.status] ?? 1;
+    const rankB = TICKET_STATUS_SORT_RANK[b.status] ?? 1;
+    if (rankA !== rankB) return rankA - rankB;
+    return dayjs(b.issued_at).valueOf() - dayjs(a.issued_at).valueOf();
+  })
+);
+
 /** Prefer payload.event_title; notification titles often use "prefix — event name". */
 export const eventTitleFromNotification = (item) => {
   const p = item?.payload || {};
@@ -570,6 +586,7 @@ const UserProfile = () => {
   }, [loadData]);
 
   const ticketCount = useMemo(() => tickets.filter((t) => t.status === 'ISSUED').length, [tickets]);
+  const sortedTickets = useMemo(() => sortTicketsForDisplay(tickets), [tickets]);
   const registrationById = useMemo(
     () => new Map(registrations.map((reg) => [reg.id, reg])),
     [registrations]
@@ -618,7 +635,7 @@ const UserProfile = () => {
       children: (
         <TicketsPanel
           loading={loading}
-          tickets={tickets}
+          tickets={sortedTickets}
           registrationById={registrationById}
           onOpenTicket={handleOpenTicket}
           onForfeitTicket={handleForfeitTicket}
@@ -645,7 +662,7 @@ const UserProfile = () => {
         />
       )
     }
-  ], [copy, handleForfeitTicket, handleOpenTicket, labelOrFn, loading, registrationById, registrationLabels, registrations, ticketLabels, tickets]);
+  ], [copy, handleForfeitTicket, handleOpenTicket, labelOrFn, loading, registrationById, registrationLabels, registrations, sortedTickets, ticketLabels]);
 
   return (
     <div className="page-wrap profile-container">
