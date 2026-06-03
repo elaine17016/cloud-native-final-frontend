@@ -43,45 +43,81 @@ export const parseEligibilityFromDescription = (rawDescription) => {
   }
 };
 
-export const buildEligibilityConfigFromFormValues = (values = {}) => {
-  const adult = values.adult_has_limits
-    ? {
-      gender: values.adult_gender || 'ANY',
-      heightMinCm: values.adult_height_min_cm ?? null,
-      heightMaxCm: values.adult_height_max_cm ?? null,
-      ageMin: values.adult_age_min ?? null,
-      ageMax: values.adult_age_max ?? null,
-      healthUnlimited: Boolean(values.adult_health_unlimited),
-      healthNoDiseases: Array.isArray(values.adult_health_no_diseases)
-        ? values.adult_health_no_diseases
-        : [],
-      otherRestrictions: splitNoteLines(values.adult_other_restrictions)
-    }
-    : null;
-
-  const child = values.child_has_limits
-    ? {
-      ageMin: values.child_age_min ?? null,
-      ageMax: values.child_age_max ?? null,
-      healthUnlimited: Boolean(values.child_health_unlimited),
-      healthNoDiseases: Array.isArray(values.child_health_no_diseases)
-        ? values.child_health_no_diseases
-        : [],
-      otherRestrictions: splitNoteLines(values.child_other_restrictions)
-    }
-    : null;
-
-  return { version: 1, adult, child };
+export const inferAdultHasLimits = (values = {}) => {
+  const healthNoDiseases = Array.isArray(values.adult_health_no_diseases)
+    ? values.adult_health_no_diseases.filter(Boolean)
+    : [];
+  if (values.adult_has_limits) return true;
+  if (healthNoDiseases.length) return true;
+  if (splitNoteLines(values.adult_other_restrictions).length) return true;
+  if (values.adult_gender && values.adult_gender !== 'ANY') return true;
+  if (values.adult_height_min_cm != null || values.adult_height_max_cm != null) return true;
+  if (values.adult_age_min != null || values.adult_age_max != null) return true;
+  if (values.adult_health_unlimited === false) return true;
+  return false;
 };
+
+export const inferChildHasLimits = (values = {}) => {
+  const healthNoDiseases = Array.isArray(values.child_health_no_diseases)
+    ? values.child_health_no_diseases.filter(Boolean)
+    : [];
+  if (values.child_has_limits) return true;
+  if (healthNoDiseases.length) return true;
+  if (splitNoteLines(values.child_other_restrictions).length) return true;
+  if (values.child_age_min != null || values.child_age_max != null) return true;
+  if (values.child_health_unlimited === false) return true;
+  return false;
+};
+
+const buildAdultBlock = (values = {}) => {
+  if (!inferAdultHasLimits(values)) return null;
+  const healthNoDiseases = Array.isArray(values.adult_health_no_diseases)
+    ? values.adult_health_no_diseases.filter(Boolean)
+    : [];
+  const healthUnlimited = healthNoDiseases.length
+    ? false
+    : Boolean(values.adult_health_unlimited);
+  return {
+    gender: values.adult_gender || 'ANY',
+    heightMinCm: values.adult_height_min_cm ?? null,
+    heightMaxCm: values.adult_height_max_cm ?? null,
+    ageMin: values.adult_age_min ?? null,
+    ageMax: values.adult_age_max ?? null,
+    healthUnlimited,
+    healthNoDiseases,
+    otherRestrictions: splitNoteLines(values.adult_other_restrictions)
+  };
+};
+
+const buildChildBlock = (values = {}) => {
+  if (!inferChildHasLimits(values)) return null;
+  const healthNoDiseases = Array.isArray(values.child_health_no_diseases)
+    ? values.child_health_no_diseases.filter(Boolean)
+    : [];
+  const healthUnlimited = healthNoDiseases.length
+    ? false
+    : Boolean(values.child_health_unlimited);
+  return {
+    ageMin: values.child_age_min ?? null,
+    ageMax: values.child_age_max ?? null,
+    healthUnlimited,
+    healthNoDiseases,
+    otherRestrictions: splitNoteLines(values.child_other_restrictions)
+  };
+};
+
+export const buildEligibilityConfigFromFormValues = (values = {}) => ({
+  version: 1,
+  adult: buildAdultBlock(values),
+  child: buildChildBlock(values)
+});
 
 export const hasEligibilityRuleBlock = (block) => {
   if (!block) return false;
   if (block.gender && block.gender !== 'ANY') return true;
   if (block.heightMinCm != null || block.heightMaxCm != null) return true;
   if (block.ageMin != null || block.ageMax != null) return true;
-  if (!block.healthUnlimited && Array.isArray(block.healthNoDiseases) && block.healthNoDiseases.length) {
-    return true;
-  }
+  if (Array.isArray(block.healthNoDiseases) && block.healthNoDiseases.length) return true;
   if (Array.isArray(block.otherRestrictions) && block.otherRestrictions.length) return true;
   return false;
 };
@@ -130,7 +166,7 @@ export const formatEligibilityRequirementLines = (config, audienceKey, labels) =
   const age = formatRange(block.ageMin, block.ageMax, labels.ageUnit);
   if (age) lines.push(`${labels.ageLabel}: ${age}`);
 
-  if (!block.healthUnlimited && block.healthNoDiseases?.length) {
+  if (block.healthNoDiseases?.length) {
     const diseases = block.healthNoDiseases
       .map((value) => localizeDiseaseValue(value, labels.diseaseLabels))
       .join(labels.listSeparator || '、');

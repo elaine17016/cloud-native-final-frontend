@@ -41,6 +41,32 @@ describe('eventEligibility', () => {
     expect(patch.child_other_restrictions).toBe('Must be accompanied');
   });
 
+  it('saves diseases even when healthUnlimited flag was left true', () => {
+    const config = buildEligibilityConfigFromFormValues({
+      adult_has_limits: true,
+      adult_health_unlimited: true,
+      adult_health_no_diseases: ['Heart disease / cardiovascular condition']
+    });
+    expect(config.adult.healthUnlimited).toBe(false);
+    expect(hasEligibilityConfig(config)).toBe(true);
+    const lines = formatEligibilityRequirementLines(config, 'adult', {
+      mustNotHaveDiseases: 'Must confirm: ',
+      listSeparator: ', ',
+      diseaseLabels: { heart: 'Heart disease' }
+    });
+    expect(lines[0]).toContain('Heart disease');
+  });
+
+  it('infers adult limits from selected diseases without expand checkbox', () => {
+    const config = buildEligibilityConfigFromFormValues({
+      adult_has_limits: false,
+      adult_health_unlimited: true,
+      adult_health_no_diseases: ['Hypertension']
+    });
+    expect(config.adult).not.toBeNull();
+    expect(config.adult.healthNoDiseases).toEqual(['Hypertension']);
+  });
+
   it('formats localized requirement lines for registration', () => {
     const config = buildEligibilityConfigFromFormValues({
       adult_has_limits: true,

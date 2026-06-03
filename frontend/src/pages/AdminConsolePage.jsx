@@ -1108,6 +1108,7 @@ const TicketRestrictionFields = ({ controller }) => {
     () => getDiseaseCheckboxOptions(t.diseaseLabels),
     [t.diseaseLabels]
   );
+  const { createForm } = controller;
   const {
     createRegistrationMode,
     anyRequireChildTicket,
@@ -1116,6 +1117,24 @@ const TicketRestrictionFields = ({ controller }) => {
     adultHealthUnlimited,
     childHealthUnlimited
   } = controller;
+
+  const handleAdultDiseasesChange = (checked) => {
+    const patch = { adult_health_no_diseases: checked };
+    if (checked.length) {
+      patch.adult_has_limits = true;
+      patch.adult_health_unlimited = false;
+    }
+    createForm.setFieldsValue(patch);
+  };
+
+  const handleChildDiseasesChange = (checked) => {
+    const patch = { child_health_no_diseases: checked };
+    if (checked.length) {
+      patch.child_has_limits = true;
+      patch.child_health_unlimited = false;
+    }
+    createForm.setFieldsValue(patch);
+  };
 
   if (createRegistrationMode !== 'LIMITED') {
     return (
@@ -1185,6 +1204,7 @@ const TicketRestrictionFields = ({ controller }) => {
                   <Checkbox.Group
                     disabled={adultHealthUnlimited}
                     options={diseaseOptions}
+                    onChange={handleAdultDiseasesChange}
                   />
                 </Form.Item>
               </Col>
@@ -1228,6 +1248,7 @@ const TicketRestrictionFields = ({ controller }) => {
                     <Checkbox.Group
                       disabled={childHealthUnlimited}
                       options={diseaseOptions}
+                      onChange={handleChildDiseasesChange}
                     />
                   </Form.Item>
                 </Col>
