@@ -359,7 +359,6 @@ const TicketsPanel = memo(({ loading, tickets, registrationById, onOpenTicket, o
               ticketLabels={ticketLabels}
               labelOrFn={labelOrFn}
             />
-            />
           </Col>
         ))}
       </Row>
