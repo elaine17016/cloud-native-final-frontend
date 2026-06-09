@@ -18,7 +18,6 @@
 - [CI/CD 自動化](#cicd-自動化)
 - [SonarCloud 程式碼品質](#sonarcloud-程式碼品質)
 - [相關文件](#相關文件)
-- [授權](#授權)
 
 ---
 
@@ -355,12 +354,6 @@ Quality Gate 典型條件包含：新程式碼可靠性 / 安全性 / 可維護�
 | [`SONAR_SETUP.md`](SONAR_SETUP.md) | SonarCloud 設定與本機驗證 |
 | [`QUALITY_AND_TEST_REPORT.md`](QUALITY_AND_TEST_REPORT.md) | 品質與測試報告 |
 | [`AGENTS.md`](AGENTS.md) | 專案狀態與 AI 協作備忘 |
-
----
-
-## 授權
-
-MIT License
 
 ---
 
